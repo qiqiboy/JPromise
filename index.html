@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>JPromise</title>
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+<style type="text/css">
+body,div,canvas,img{
+    margin:0;
+    padding:0;
+    border:0;
+}
+html,body{
+    height:100%;
+}
+#wrap{
+    min-height:100%;
+    position:relative;
+}
+</style>
+</head>
+<body>
+<div id="wrap">
+</div>
+	<script type="text/javascript" src="src/promise.js"></script>
+    <script>
+        function resolveDelay(time){
+            return JPromise(function(resolve){
+                setTimeout(function(){
+                    resolve(time)        
+                },time);
+            })
+        }
+        function rejectDelay(time){
+            return JPromise(function(resolve,reject){
+                setTimeout(function(){
+                    reject(time)        
+                },time);
+            })
+        }
+        
+        p=JPromise(function(resolve){
+            setTimeout(function(){
+                resolve(1000);    
+            },3500);
+        }).done(function(){
+            console.log('mydone')        
+        }).then(function(v){
+            return rejectDelay(v)
+        }).then(function(){
+            console.log('success') 
+        },function(){
+            console.log('fail') 
+        }).fail(function(){
+            console.log(1111)        
+        });
+    
+        JPromise().when(resolveDelay(1000),resolveDelay(2000),resolveDelay(3000)).then(function(){console.log('3s done!')});
+        
+        JPromise().some(resolveDelay(1000),resolveDelay(2000),resolveDelay(3000)).then(function(){console.log('1s done!')});
+    </script>
+</body>
+</html>

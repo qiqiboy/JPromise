@@ -1,0 +1,196 @@
+/*
+ * @author qiqiboy
+ * @github https://github.com/qiqiboy/CMask
+ */
+;
+(function(ROOT, struct, undefined){
+    "use strict";
+
+    if(typeof Function.prototype.bind!='function'){
+        Function.prototype.bind=function(obj){
+            var self=this;
+            return function(){
+                return self.apply(obj,arguments);
+            }
+        }
+    }
+
+    var Refer={
+        resolved:['resolve','done'],
+        rejected:['reject','fail']
+    }
+    
+    function isFn(fn){
+        return typeof fn=='function';
+    }
+
+    function isPromiseLike(obj){
+        return isFn(obj&&obj.then);
+    }
+    
+    function isArray(arr){
+        return Object.prototype.toString.call(arr)=='[object Array]';
+    }
+
+    struct.prototype={
+        constructor:struct,
+        state:'pending',
+        on:function(ev,fn){
+            if(!this.handles[ev]){
+                this.handles[ev]=[];
+            }
+            isFn(fn) && this.handles[ev].push(fn);
+            return this;
+        },
+        fire:function(ev){
+            var args=this.args||[],
+                queue=this.handles[ev]||[];
+            while(queue.length){
+                queue.shift().apply(null,args);
+            }
+            return this;
+        },
+        then:function(resolve,reject){
+            var next=new struct,
+                fns=arguments;
+            
+            "resolve reject".split(" ").forEach(function(prop,i){
+                this.on(prop,function(){
+                    var args=[].slice.call(arguments),
+                        v;
+                    try{
+                        if(isFn(fns[i])){
+                            v=fns[i].apply(null,args);
+                            args[0]=v;
+                        }
+
+                        if(isPromiseLike(v)){
+                            v.always(function(){
+                                next[Refer[v.state][0]].apply(next,arguments);
+                            });
+                        }else{
+                            next[prop].apply(next,args);
+                        }
+                    }catch(e){
+                        next.reject(e);
+                    }
+                });
+            }.bind(this));
+
+            switch(this.state){
+                case 'resolved':
+                case 'rejected':
+                    this.fire(Refer[this.state][0]);
+                    break;
+            }
+
+            return next;
+        },
+        catch:function(fn){
+            return this.then(null,fn);
+        },
+        done:function(fn){
+            return this.then(fn);
+        },
+        fail:function(fn){
+            return this.then(null,fn);
+        },
+        always:function(fn){
+            return this.then(fn,fn);
+        }
+    }
+
+    function when(){
+        var queue=[].slice.call(arguments),
+            ret=[],len=queue.length,
+            pending=0;
+
+        return struct(function(resolve,reject){
+            queue.forEach(function(p,i){
+                if(isArray(p)){
+                    p=struct.when.apply(null,p);
+                }
+                p.then(function(v){
+                    ret[i]=v;
+                    if(len==++pending){
+                        resolve(ret);
+                    }
+                },function(v){
+                    reject(v);
+                });
+            });
+        });
+    }
+
+    function some(){
+        var queue=[].slice.call(arguments),
+            ret=[],len=queue.length,
+            pending=0;
+
+        return struct(function(resolve,reject){
+            queue.forEach(function(p,i){
+                if(isArray(p)){
+                    p=struct.some.apply(null,p);
+                }
+                p.then(function(v){
+                    if(!pending)resolve(v);
+                },function(v){
+                    ret[i]=v;
+                    if(len==++pending){
+                        reject(ret);
+                    }
+                });
+            });
+        });
+    }
+
+    "resolve reject".split(" ").forEach(function(prop){
+        struct[prop]=function(){
+            var p=new struct;
+            return p[prop].apply(p,arguments);
+        }
+
+        struct.prototype[prop]=function(){
+            var state=prop=='resolve'?'resolved':'rejected';
+            if(this.state!='pending' && this.state!=state){
+                throw Error('Illegal call');
+            }
+
+            this.state=state;
+            this.args=[].slice.call(arguments);
+            this.fire(prop);
+
+            return this;
+        }
+    });
+
+    "when all every".split(" ").forEach(function(prop){
+        struct[prop]=when;
+
+        struct.prototype[prop]=function(){
+            when.apply(null,arguments).then(this.resolve.bind(this),this.reject.bind(this));
+            return this;
+        }
+    });
+
+    "some any".split(" ").forEach(function(prop){
+        struct[prop]=some;
+
+        struct.prototype[prop]=function(){
+            some.apply(null,arguments).then(this.resolve.bind(this),this.reject.bind(this));
+            return this;
+        }
+    });
+
+    ROOT.JPromise=struct;
+    
+})(window, function(then){
+    if(!(this instanceof arguments.callee)){
+        return new arguments.callee(then);
+    }
+    
+    this.handles={};
+
+    typeof then=='function' &&
+        then(this.resolve.bind(this),this.reject.bind(this));
+});
