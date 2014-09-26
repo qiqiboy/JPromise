@@ -74,6 +74,7 @@
                         if(isFn(fns[i])){
                             v=fns[i].apply(null,args);
                             args[0]=v;
+                            prop='resolve';
                         }
 
                         if(isPromiseLike(v)){
@@ -81,7 +82,7 @@
                                 next[Refer[v.state][0]].apply(next,arguments);
                             });
                         }else{
-                            next[isFn(fns[i])?'resolve':prop].apply(next,args);
+                            next[prop].apply(next,args);
                         }
                     }catch(e){
                         next.reject(e);
