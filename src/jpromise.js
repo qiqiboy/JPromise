@@ -123,14 +123,21 @@
                 if(isArray(p)){
                     p=struct.when.apply(null,p);
                 }
-                p.then(function(v){
-                    ret[i]=v;
+                if(isPromiseLike(p)){
+                    p.then(function(v){
+                        ret[i]=v;
+                        if(len==++pending){
+                            resolve(ret);
+                        }
+                    },function(v){
+                        reject(v);
+                    })
+                }else{
+                    ret[i]=p;
                     if(len==++pending){
                         resolve(ret);
                     }
-                },function(v){
-                    reject(v);
-                });
+                }
             });
         });
     }
@@ -145,14 +152,18 @@
                 if(isArray(p)){
                     p=struct.some.apply(null,p);
                 }
-                p.then(function(v){
-                    resolve(v);
-                },function(v){
-                    ret[i]=v;
-                    if(len==++pending){
-                        reject(ret);
-                    }
-                });
+                if(isPromiseLike(p)){
+                    p.then(function(v){
+                        resolve(v);
+                    },function(v){
+                        ret[i]=v;
+                        if(len==++pending){
+                            reject(ret);
+                        }
+                    });
+                }else{
+                    resolve(p);
+                }
             });
         });
     }
@@ -186,7 +197,7 @@
         }
     });
 
-    "some any".split(" ").forEach(function(prop){
+    "some any race".split(" ").forEach(function(prop){
         struct[prop]=some;
 
         struct.prototype[prop]=function(){
