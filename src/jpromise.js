@@ -81,7 +81,7 @@
                                 next[Refer[v.state][0]].apply(next,arguments);
                             });
                         }else{
-                            next[prop].apply(next,args);
+                            next.resolve.apply(next,args);
                         }
                     }catch(e){
                         next.reject(e);
