@@ -23,7 +23,7 @@ html,body{
 <body>
 <div id="wrap">
 </div>
-	<script type="text/javascript" src="src/promise.js"></script>
+	<script type="text/javascript" src="src/jpromise.js"></script>
     <script>
         function resolveDelay(time){
             return JPromise(function(resolve){
@@ -54,7 +54,9 @@ html,body{
             console.log('fail') 
         }).fail(function(){
             console.log(1111)        
-        });
+        }).then(function(){
+			console.log(222)
+		});
     
         JPromise().when(resolveDelay(1000),resolveDelay(2000),resolveDelay(3000)).then(function(){console.log('3s done!')});
         
