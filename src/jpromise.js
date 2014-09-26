@@ -98,7 +98,7 @@
 
             return next;
         },
-        catch:function(fn){
+        'catch':function(fn){
             return this.then(null,fn);
         },
         done:function(fn){
