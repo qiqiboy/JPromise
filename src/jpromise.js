@@ -1,6 +1,6 @@
 /*
  * @author qiqiboy
- * @github https://github.com/qiqiboy/CMask
+ * @github https://github.com/qiqiboy/JPromise
  */
 ;
 (function(ROOT, struct, undefined){
@@ -13,6 +13,18 @@
                 return self.apply(obj,arguments);
             }
         }
+    }
+
+    if(typeof Array.prototype.forEach!='function'){
+         Array.prototype.forEach=function(iterate){
+            var i=0,len=this.length,item;
+            for(;i<len;i++){
+                item=this[i];
+                if(typeof item!='undefined'){
+                    iterate(item,i,this);
+                }
+            }
+         }
     }
 
     var Refer={
