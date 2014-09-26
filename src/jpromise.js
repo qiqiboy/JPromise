@@ -62,7 +62,7 @@
             }
             return this;
         },
-        then:function(resolve,reject){
+        then:function(){
             var next=new struct,
                 fns=arguments;
             
