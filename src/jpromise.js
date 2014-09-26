@@ -145,7 +145,7 @@
                     p=struct.some.apply(null,p);
                 }
                 p.then(function(v){
-                    if(!pending)resolve(v);
+                    resolve(v);
                 },function(v){
                     ret[i]=v;
                     if(len==++pending){
