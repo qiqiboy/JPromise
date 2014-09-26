@@ -24,7 +24,7 @@ html,body{
 <div id="wrap">
 </div>
 	<script type="text/javascript" src="src/jpromise.js"></script>
-    <script>//JPromise=Promise
+    <script>JPromise=Promise
         function resolveDelay(time){
             return new JPromise(function(resolve){
                 setTimeout(function(){
@@ -39,7 +39,7 @@ html,body{
                 },time);
             })
         }
-        
+        console.log('start')
         p=new JPromise(function(resolve,reject){
             setTimeout(function(){
                 resolve(1000);    
@@ -48,12 +48,12 @@ html,body{
             console.log('mydone')  
             return v
         }).then(function(v){
-            return rejectDelay(v)
+            return resolveDelay(v)
         }).then(function(){
             console.log('success') 
-        },function(){
-            console.log('fail') 
         }).then(function(){
+			console.log(0)
+		}).then(function(){
             return rejectDelay(2000)
         }).then(null,function(){
             console.log(1111)        

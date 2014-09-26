@@ -81,7 +81,7 @@
                                 next[Refer[v.state][0]].apply(next,arguments);
                             });
                         }else{
-                            next.resolve.apply(next,args);
+                            next[isFn(fns[i])?'resolve':prop].apply(next,args);
                         }
                     }catch(e){
                         next.reject(e);
