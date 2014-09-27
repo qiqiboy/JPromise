@@ -120,14 +120,15 @@
 
         return struct(function(resolve,reject){
             queue.forEach(function(p,i){
-                if(isArray(p)){
+                var isArr=isArray(p);
+                if(isArr){
                     p=struct.when.apply(null,p);
                 }
                 if(isPromiseLike(p)){
                     p.then(function(v){
                         ret[i]=v;
                         if(len==++pending){
-                            resolve(ret);
+                            resolve[isArr?'apply':'call'](null,ret);
                         }
                     },function(v){
                         reject(v);
@@ -135,7 +136,7 @@
                 }else{
                     ret[i]=p;
                     if(len==++pending){
-                        resolve(ret);
+                        resolve.apply(null,ret);
                     }
                 }
             });
@@ -149,7 +150,8 @@
 
         return struct(function(resolve,reject){
             queue.forEach(function(p,i){
-                if(isArray(p)){
+                var isArr=isArray(p);
+                if(isArr){
                     p=struct.some.apply(null,p);
                 }
                 if(isPromiseLike(p)){
@@ -158,7 +160,7 @@
                     },function(v){
                         ret[i]=v;
                         if(len==++pending){
-                            reject(ret);
+                            reject[isArr?'apply':'call'](null,ret);
                         }
                     });
                 }else{
