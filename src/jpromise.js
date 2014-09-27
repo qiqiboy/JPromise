@@ -116,29 +116,28 @@
     function when(){
         var queue=[].slice.call(arguments),
             ret=[],len=queue.length,
-            pending=0;
+            pending=0,called;
 
         return struct(function(resolve,reject){
             queue.forEach(function(p,i){
-                var isArr=isArray(p);
-                if(isArr){
-                    p=struct.when.apply(null,p);
-                }
-                if(isPromiseLike(p)){
-                    p.then(function(v){
+                var isArr=isArray(p),
+                    callee=function(v){
                         ret[i]=v;
                         if(len==++pending){
                             resolve[isArr?'apply':'call'](null,ret);
                         }
-                    },function(v){
-                        reject(v);
-                    })
-                }else{
-                    ret[i]=p;
-                    if(len==++pending){
-                        resolve.apply(null,ret);
                     }
+                if(isArr){
+                    p=struct.when.apply(null,p);
                 }
+                if(isPromiseLike(p)){
+                    p.then(callee,function(v){
+                        if(!called){
+                            called=true;
+                            reject(v);
+                        }
+                    });
+                }else callee(p);
             });
         });
     }
@@ -146,26 +145,28 @@
     function some(){
         var queue=[].slice.call(arguments),
             ret=[],len=queue.length,
-            pending=0;
+            pending=0,called;
 
         return struct(function(resolve,reject){
+            var callee=function(v){
+                if(!called){
+                    called=true;
+                    resolve(v);
+                }
+            }
             queue.forEach(function(p,i){
                 var isArr=isArray(p);
                 if(isArr){
                     p=struct.some.apply(null,p);
                 }
                 if(isPromiseLike(p)){
-                    p.then(function(v){
-                        resolve(v);
-                    },function(v){
+                    p.then(callee,function(v){
                         ret[i]=v;
                         if(len==++pending){
                             reject[isArr?'apply':'call'](null,ret);
                         }
                     });
-                }else{
-                    resolve(p);
-                }
+                }else callee(p);
             });
         });
     }
