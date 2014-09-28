@@ -28,8 +28,8 @@
     }
 
     var Refer={
-        resolved:['resolve','done'],
-        rejected:['reject','fail']
+        resolved:'resolve',
+        rejected:'reject'
     }
     
     function isFn(fn){
@@ -77,13 +77,7 @@
                             prop='resolve';
                         }
 
-                        if(isPromiseLike(v)){
-                            v.always(function(){
-                                next[Refer[v.state][0]].apply(next,arguments);
-                            });
-                        }else{
-                            next[prop].apply(next,args);
-                        }
+                        next[prop].apply(next,args);
                     }catch(e){
                         next.reject(e);
                     }
@@ -93,7 +87,7 @@
             switch(this.state){
                 case 'resolved':
                 case 'rejected':
-                    this.fire(Refer[this.state][0]);
+                    this.fire(Refer[this.state]);
                     break;
             }
 
@@ -125,10 +119,10 @@
                         ret[i]=v;
                         if(len==++pending){
                             resolve[isArr?'apply':'call'](null,ret);
-                        }
+                        } 
                     }
                 if(isArr){
-                    p=struct.when.apply(null,p);
+                    p=when.apply(null,p);
                 }
                 if(isPromiseLike(p)){
                     p.then(callee,function(v){
@@ -157,7 +151,7 @@
             queue.forEach(function(p,i){
                 var isArr=isArray(p);
                 if(isArr){
-                    p=struct.some.apply(null,p);
+                    p=some.apply(null,p);
                 }
                 if(isPromiseLike(p)){
                     p.then(callee,function(v){
@@ -171,21 +165,30 @@
         });
     }
 
-    "resolve reject".split(" ").forEach(function(prop){
+    "resolved rejected".split(" ").forEach(function(state){
+        var prop=Refer[state];
+
         struct[prop]=function(){
             var p=new struct;
             return p[prop].apply(p,arguments);
         }
 
-        struct.prototype[prop]=function(){
-            var state=prop=='resolve'?'resolved':'rejected';
+        struct.prototype[prop]=function(p){
             if(this.state!='pending' && this.state!=state){
                 throw Error('Illegal call');
             }
 
-            this.state=state;
-            this.args=[].slice.call(arguments);
-            this.fire(prop);
+            if(p===this){
+                throw new Error('TypeError');
+            }
+
+            if(isPromiseLike(p)){
+                p.then(this.resolve.bind(this),this.reject.bind(this));
+            }else{
+                this.state=state;
+                this.args=[].slice.call(arguments);
+                this.fire(prop);
+            }
 
             return this;
         }
