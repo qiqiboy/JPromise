@@ -95,6 +95,13 @@
 
             return next;
         },
+        chain:function(p){
+            return this.then(function(){
+                p.resolve.apply(p,arguments);
+            },function(){
+                p.reject.apply(p,arguments);
+            });
+        },
         'catch':function(fn){
             return this.then(null,fn);
         },
@@ -185,7 +192,7 @@
             }
 
             if(isPromiseLike(p)){
-                p.then(this._resolve.bind(this),this._reject.bind(this));
+                p.chain(this);
             }else{
                 this.state=state;
                 this.args=slice.call(arguments);
@@ -194,17 +201,13 @@
 
             return this;
         }
-
-        struct.prototype['_'+prop]=function(){
-            this[prop].apply(this,arguments);
-        }
     });
 
     "when all every".split(" ").forEach(function(prop){
         struct[prop]=when;
 
         struct.prototype[prop]=function(){
-            when.apply(null,arguments).then(this._resolve.bind(this),this._reject.bind(this));
+            when.apply(null,arguments).chain(this);
             return this;
         }
     });
@@ -213,7 +216,7 @@
         struct[prop]=some;
 
         struct.prototype[prop]=function(){
-            some.apply(null,arguments).then(this._resolve.bind(this),this._reject.bind(this));
+            some.apply(null,arguments).chain(this);
             return this;
         }
     });
