@@ -115,7 +115,7 @@
             pending=0,called;
 
         return struct(function(resolve,reject){
-            queue.forEach(function(p,i){
+            queue.length?queue.forEach(function(p,i){
                 var isArr=isArray(p),
                     callee=function(v){
                         ret[i]=isArr?slice.call(arguments):v;
@@ -134,7 +134,7 @@
                         }
                     });
                 }else callee(p);
-            });
+            }):resolve();
         });
     }
 
@@ -150,7 +150,7 @@
                     resolve(v);
                 }
             }
-            queue.forEach(function(p,i){
+            queue.length?queue.forEach(function(p,i){
                 var isArr=isArray(p);
                 if(isArr){
                     p=some.apply(null,p);
@@ -163,7 +163,7 @@
                         }
                     });
                 }else callee(p);
-            });
+            }):resolve();
         });
     }
 
@@ -177,11 +177,11 @@
 
         struct.prototype[prop]=function(p){
             if(this.state!='pending' && this.state!=state){
-                throw Error('Illegal call.');
+                throw Error('Illegal call');
             }
 
             if(p===this){
-                throw new TypeError('Argument is same as self.');
+                throw new TypeError('invalid_argument');
             }
 
             if(isPromiseLike(p)){
