@@ -179,7 +179,7 @@
             }
 
             if(p===this){
-                throw new Error('TypeError');
+                throw new TypeError('Objects same type');
             }
 
             if(isPromiseLike(p)){
