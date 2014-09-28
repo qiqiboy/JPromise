@@ -30,7 +30,7 @@
     var Refer={
         resolved:'resolve',
         rejected:'reject'
-    }
+    },slice=[].slice;
     
     function isFn(fn){
         return typeof fn=='function';
@@ -68,7 +68,7 @@
             
             "resolve reject".split(" ").forEach(function(prop,i){
                 this.on(prop,function(){
-                    var args=[].slice.call(arguments),
+                    var args=slice.call(arguments),
                         v;
                     try{
                         if(isFn(fns[i])){
@@ -108,7 +108,7 @@
     }
 
     function when(){
-        var queue=[].slice.call(arguments),
+        var queue=slice.call(arguments),
             ret=[],len=queue.length,
             pending=0,called;
 
@@ -116,10 +116,10 @@
             queue.forEach(function(p,i){
                 var isArr=isArray(p),
                     callee=function(v){
-                        ret[i]=v;
+                        ret[i]=isArr?slice.call(arguments):v;
                         if(len==++pending){
-                            resolve[isArr?'apply':'call'](null,ret);
-                        } 
+                            resolve.apply(null,ret);
+                        }
                     }
                 if(isArr){
                     p=when.apply(null,p);
@@ -137,7 +137,7 @@
     }
 
     function some(){
-        var queue=[].slice.call(arguments),
+        var queue=slice.call(arguments),
             ret=[],len=queue.length,
             pending=0,called;
 
@@ -155,9 +155,9 @@
                 }
                 if(isPromiseLike(p)){
                     p.then(callee,function(v){
-                        ret[i]=v;
+                        ret[i]=isArr?slice.call(arguments):v;
                         if(len==++pending){
-                            reject[isArr?'apply':'call'](null,ret);
+                            reject.apply(null,ret);
                         }
                     });
                 }else callee(p);
@@ -175,11 +175,11 @@
 
         struct.prototype[prop]=function(p){
             if(this.state!='pending' && this.state!=state){
-                throw Error('Illegal call');
+                throw Error('Illegal call.');
             }
 
             if(p===this){
-                throw new TypeError('Objects same type');
+                throw new TypeError('Argument is same as self.');
             }
 
             if(isPromiseLike(p)){
