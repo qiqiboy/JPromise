@@ -185,14 +185,18 @@
             }
 
             if(isPromiseLike(p)){
-                p.then(this.resolve.bind(this),this.reject.bind(this));
+                p.then(this._resolve.bind(this),this._reject.bind(this));
             }else{
                 this.state=state;
-                this.args=[].slice.call(arguments);
+                this.args=slice.call(arguments);
                 this.fire(prop);
             }
 
             return this;
+        }
+
+        struct.prototype['_'+prop]=function(){
+            this[prop].apply(this,arguments);
         }
     });
 
@@ -200,7 +204,7 @@
         struct[prop]=when;
 
         struct.prototype[prop]=function(){
-            when.apply(null,arguments).then(this.resolve.bind(this),this.reject.bind(this));
+            when.apply(null,arguments).then(this._resolve.bind(this),this._reject.bind(this));
             return this;
         }
     });
@@ -209,7 +213,7 @@
         struct[prop]=some;
 
         struct.prototype[prop]=function(){
-            some.apply(null,arguments).then(this.resolve.bind(this),this.reject.bind(this));
+            some.apply(null,arguments).then(this._resolve.bind(this),this._reject.bind(this));
             return this;
         }
     });
