@@ -30,7 +30,9 @@
     var Refer={
         resolved:'resolve',
         rejected:'reject'
-    },slice=[].slice;
+    },
+    slice=[].slice,
+    toString={}.toString;
     
     function isFn(fn){
         return typeof fn=='function';
@@ -41,7 +43,7 @@
     }
     
     function isArray(arr){
-        return Object.prototype.toString.call(arr)=='[object Array]';
+        return toString.call(arr)=='[object Array]';
     }
 
     struct.prototype={
