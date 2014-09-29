@@ -196,7 +196,7 @@
 
         struct.prototype[prop]=function(p){
             if(this.state!='pending' && this.state!=state){
-                throw Error('Illegal call');
+                throw new Error('Illegal call');
             }
 
             if(p===this){
