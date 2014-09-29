@@ -182,7 +182,7 @@
                         }
                     });
                 }else callee(p);
-            }):resolve();
+            }):reject();
         });
     }
 
