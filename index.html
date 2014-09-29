@@ -37,7 +37,7 @@ html,body{
 		return resolveDefer(t);
 	}
 
-	//常规调用 new Promise(resolver);
+	//常规调用 new JPromise(resolver);
 	function lz(){
 
 	new JPromise(function(resolve,reject,notify){
@@ -125,7 +125,7 @@ var resolveDefer=function(t){
 	return resolveDefer(t);
 }
 
-//常规调用 new Promise(resolver);
+//常规调用 new JPromise(resolver);
 function lz(){
 
 new JPromise(function(resolve,reject,notify){

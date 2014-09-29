@@ -235,13 +235,13 @@
 
     ROOT.JPromise=struct;
     
-})(window, function(then){
+})(window, function(resolver){
     if(!(this instanceof arguments.callee)){
-        return new arguments.callee(then);
+        return new arguments.callee(resolver);
     }
     
     this.handles={};
 
-    typeof then=='function' &&
-        then(this.resolve.bind(this),this.reject.bind(this),this.notify.bind(this));
+    typeof resolver=='function' &&
+        resolver(this.resolve.bind(this),this.reject.bind(this),this.notify.bind(this));
 });

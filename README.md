@@ -7,7 +7,7 @@ JPromise
 
 ```javascript
 
-//常规调用 new Promise(resolver);
+//常规调用 new JPromise(resolver);
 new JPromise(function(resolve,reject,notify){
 	var t=setInterval(function(){
 		notify('progress');
