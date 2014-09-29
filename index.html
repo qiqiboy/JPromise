@@ -22,6 +22,94 @@ html,body{
 </head>
 <body>
 <div id="wrap">
+<pre>
+	提示：F12打开控制台查看结果输出！
+	
+	var resolveDefer=function(t){
+		return JPromise(function(resolve,reject,notify){
+			setTimeout(function(){resolve(t);},t);
+		});
+	},rejectDefer=function(t){
+		return JPromise(function(resolve,reject,notify){
+			setTimeout(function(){reject(t);},t);
+		});
+	},resolveDelay=function(t){
+		return resolveDefer(t);
+	}
+
+	//常规调用 new Promise(resolver);
+	function lz(){
+
+	new JPromise(function(resolve,reject,notify){
+		var t=setInterval(function(){
+			notify('progress');
+		},100);
+		setTimeout(function(){
+			//取消通知，否则会引发错误。
+			//因为一旦resolve后状态不允许更改，所以无法继续通知！
+			clearInterval(t);
+			//完成该任务
+			resolve('done!');
+		},2000);
+	}).then(function(v){
+		console.log(v); // done!
+	},function(v){
+		console.log(v);//无输出
+	},function(v){
+		console.log(v);//间隔100ms输出 progress
+	});
+
+	}
+
+	/* 上面调用还可以改写如下 */
+	/*
+	var p=new JPromise,
+		t;
+	t=setInterval(function(){
+		p.notify('progress');
+	},100);
+	setTimeout(function(){
+		clearInterval(t);
+		p.resolve('done!');
+	},2000);
+	p.progress(function(v){
+		console.log(v);
+	}).done(function(v){
+		console.log(v);
+	});
+	*/
+
+	//延迟调用链
+	function lz1(){
+
+	console.log('start');
+
+	new JPromise.resolve(1000).then(function(t){
+		return resolveDefer(t); //延迟1s
+	}).then(function(t){
+		console.log(t+'ms后输出');
+		return t+1000;
+	}).then(function(t){
+		return resolveDefer(t); //延迟2s
+	}).then(function(t){
+		console.log(t+'ms后输出');
+		return rejectDefer(t+1000) //延迟3s，并返回失败
+	}).then(function(){
+		console.log('成功')
+	},function(t){
+		console.log(t+'ms后失败')
+	}).then(function(t){
+		return resolveDefer(2000); //延迟2s
+	}).then(function(){
+		console.log('调用完毕');
+	});
+
+	}
+		
+	JPromise().when(resolveDelay(1000),resolveDelay(4000),resolveDelay(3000)).then(function(){console.log('4s done!'); lz1();});//= JPromise.when(resolveDelay(1000),resolveDelay(2000),resolveDelay(3000)).then(function(){console.log('3s done!')});
+
+	JPromise().some(resolveDelay(1000),resolveDelay(2000),resolveDelay(3000)).then(function(){console.log('1s done!'); lz();});//= JPromise.some(resolveDelay(1000),resolveDelay(2000),resolveDelay(3000)).then(function(){console.log('1s done!')});
+</pre>
 </div>
 <script type="text/javascript" src="src/jpromise.js"></script>
 <script>
