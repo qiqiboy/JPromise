@@ -29,7 +29,8 @@
 
     var Refer={
         resolved:'resolve',
-        rejected:'reject'
+        rejected:'reject',
+        pending:'notify'
     },
     slice=[].slice,
     toString={}.toString;
@@ -59,8 +60,14 @@
         fire:function(ev){
             var args=this.args||[],
                 queue=this.handles[ev]||[];
-            while(queue.length){
-                queue.shift().apply(null,args);
+            if(ev=='notify'){
+                queue.forEach(function(fn){
+                    fn.apply(null,args);
+                });
+            }else{
+                while(queue.length){
+                    queue.shift().apply(null,args);
+                }
             }
             return this;
         },
@@ -68,7 +75,7 @@
             var next=new struct,
                 fns=arguments;
             
-            "resolve reject".split(" ").forEach(function(prop,i){
+            "resolve reject notify".split(" ").forEach(function(prop,i){
                 this.on(prop,function(){
                     var args=slice.call(arguments),
                         v;
@@ -76,7 +83,7 @@
                         if(isFn(fns[i])){
                             v=fns[i].apply(null,args);
                             args[0]=v;
-                            prop='resolve';
+                            i==1 && (prop='resolve');
                         }
 
                         next[prop].apply(next,args);
@@ -100,6 +107,8 @@
                 p.resolve.apply(p,arguments);
             },function(){
                 p.reject.apply(p,arguments);
+            },function(){
+                p.notify.apply(p,arguments);
             });
         },
         'catch':function(fn){
@@ -110,6 +119,9 @@
         },
         fail:function(fn){
             return this.then(null,fn);
+        },
+        progress:function(fn){
+            return this.then(null,null,fn);
         },
         always:function(fn){
             return this.then(fn,fn);
@@ -174,7 +186,7 @@
         });
     }
 
-    "resolved rejected".split(" ").forEach(function(state){
+    "resolved rejected pending".split(" ").forEach(function(state){
         var prop=Refer[state];
 
         struct[prop]=function(){
@@ -231,5 +243,5 @@
     this.handles={};
 
     typeof then=='function' &&
-        then(this.resolve.bind(this),this.reject.bind(this));
+        then(this.resolve.bind(this),this.reject.bind(this),this.notify.bind(this));
 });
