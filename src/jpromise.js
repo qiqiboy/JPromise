@@ -158,14 +158,12 @@
                 if(isArr){
                     p=when.apply(null,p);
                 }
-                if(isPromiseLike(p)){
-                    p.then(callee,function(v){
-                        if(!called){
-                            called=true;
-                            reject(v);
-                        }
-                    });
-                }else callee(p);
+                Promise.resolve(p).then(callee,function(v){
+                    if(!called){
+                        called=true;
+                        reject(v);
+                    }
+                });
             }):resolve();
         });
     }
@@ -187,14 +185,12 @@
                 if(isArr){
                     p=some.apply(null,p);
                 }
-                if(isPromiseLike(p)){
-                    p.then(callee,function(v){
-                        ret[i]=isArr?slice.call(arguments):v;
-                        if(len==++pending){
-                            reject.apply(null,ret);
-                        }
-                    });
-                }else callee(p);
+                Promise.resolve(p).then(callee,function(v){
+                    ret[i]=isArr?slice.call(arguments):v;
+                    if(len==++pending){
+                        reject.apply(null,ret);
+                    }
+                });
             }):reject();
         });
     }
@@ -211,8 +207,11 @@
     "resolved rejected pending".split(" ").forEach(function(state){
         var prop=Refer[state];
 
-        struct[prop]=function(){
-            var p=new this;
+        struct[prop]=function(p){
+            if(isPromiseLike(p)){
+                return p;
+            }
+            p=new this;
             return p[prop].apply(p,arguments);
         }
 
@@ -241,8 +240,7 @@
         struct[prop]=when;
 
         struct.prototype[prop]=function(){
-            when.apply(null,arguments).chain(this);
-            return this;
+            return when.apply(null,arguments).chain(this);
         }
     });
 
@@ -250,8 +248,7 @@
         struct[prop]=some;
 
         struct.prototype[prop]=function(){
-            some.apply(null,arguments).chain(this);
-            return this;
+            return some.apply(null,arguments).chain(this);
         }
     });
 
