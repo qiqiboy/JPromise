@@ -132,7 +132,7 @@
         promise:function(){
             var self=this,
                 p={};
-            "then catch process".split(" ").forEach(function(prop){
+            "then catch progress".split(" ").forEach(function(prop){
                 p[prop]=function(){
                     return self[prop].apply(self,arguments).promise();
                 }
