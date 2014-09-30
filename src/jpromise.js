@@ -158,12 +158,14 @@
                 if(isArr){
                     p=when.apply(null,p);
                 }
-                Promise.resolve(p).then(callee,function(v){
-                    if(!called){
-                        called=true;
-                        reject(v);
-                    }
-                });
+                if(isPromiseLike(p)){
+                    p.then(callee,function(v){
+                        if(!called){
+                            called=true;
+                            reject(v);
+                        }
+                    });
+                }else callee(p);
             }):resolve();
         });
     }
@@ -185,12 +187,14 @@
                 if(isArr){
                     p=some.apply(null,p);
                 }
-                Promise.resolve(p).then(callee,function(v){
-                    ret[i]=isArr?slice.call(arguments):v;
-                    if(len==++pending){
-                        reject.apply(null,ret);
-                    }
-                });
+                if(isPromiseLike(p)){
+                    p.then(callee,function(v){
+                        ret[i]=isArr?slice.call(arguments):v;
+                        if(len==++pending){
+                            reject.apply(null,ret);
+                        }
+                    });
+                }else callee(p);
             }):reject();
         });
     }
@@ -207,11 +211,8 @@
     "resolved rejected pending".split(" ").forEach(function(state){
         var prop=Refer[state];
 
-        struct[prop]=function(p){
-            if(isPromiseLike(p)){
-                return p;
-            }
-            p=new this;
+        struct[prop]=function(){
+            var p=new this;
             return p[prop].apply(p,arguments);
         }
 
