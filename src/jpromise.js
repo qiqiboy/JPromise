@@ -200,8 +200,8 @@
     }
 
     "defer promise".split(" ").forEach(function(prop){
-        struct[prop]=function(resolver){
-            if(this instanceof struct[prop]){
+        struct[prop]=function callee(resolver){
+            if(this instanceof callee){
                 throw new TypeError(prop+' is not a constructor');
             }
             return this(resolver)[prop]();
