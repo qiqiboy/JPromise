@@ -120,11 +120,24 @@
         fail:function(fn){
             return this.then(null,fn);
         },
+        always:function(fn){
+            return this.then(fn,fn);
+        },
         progress:function(fn){
             return this.then(null,null,fn);
         },
-        always:function(fn){
-            return this.then(fn,fn);
+        defer:function(){
+            return this;
+        },
+        promise:function(){
+            var self=this,
+                p={};
+            "then catch process".split(" ").forEach(function(prop){
+                p[prop]=function(){
+                    return self[prop].apply(self,arguments).promise();
+                }
+            });
+            return p;
         }
     }
 
@@ -186,11 +199,20 @@
         });
     }
 
+    "defer promise".split(" ").forEach(function(prop){
+        struct[prop]=function(resolver){
+            if(this instanceof struct[prop]){
+                throw new TypeError(prop+' is not a constructor');
+            }
+            return this(resolver)[prop]();
+        }
+    });
+
     "resolved rejected pending".split(" ").forEach(function(state){
         var prop=Refer[state];
 
         struct[prop]=function(){
-            var p=new struct;
+            var p=new this;
             return p[prop].apply(p,arguments);
         }
 
