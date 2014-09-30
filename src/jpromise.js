@@ -79,17 +79,18 @@
                 this.on(prop,function(){
                     var args=slice.call(arguments),
                         v;
-                    try{
-                        if(isFn(fns[i])){
+
+                    if(isFn(fns[i])){
+                        try{
                             v=fns[i].apply(null,args);
                             args[0]=v;
                             i==1 && (prop='resolve');
+                        }catch(e){
+                            next.reject(e);
                         }
-
-                        next[prop].apply(next,args);
-                    }catch(e){
-                        next.reject(e);
                     }
+
+                    next[prop].apply(next,args);
                 });
             }.bind(this));
 
@@ -144,7 +145,7 @@
     function when(){
         var queue=slice.call(arguments),
             ret=[],len=queue.length,
-            pending=0,called;
+            pending=0;
 
         return struct(function(resolve,reject){
             queue.length?queue.forEach(function(p,i){
@@ -159,12 +160,7 @@
                     p=when.apply(null,p);
                 }
                 if(isPromiseLike(p)){
-                    p.then(callee,function(v){
-                        if(!called){
-                            called=true;
-                            reject(v);
-                        }
-                    });
+                    p.then(callee,reject);
                 }else callee(p);
             }):resolve();
         });
@@ -173,28 +169,22 @@
     function some(){
         var queue=slice.call(arguments),
             ret=[],len=queue.length,
-            pending=0,called;
+            pending=0;
 
         return struct(function(resolve,reject){
-            var callee=function(v){
-                if(!called){
-                    called=true;
-                    resolve(v);
-                }
-            }
             queue.length?queue.forEach(function(p,i){
                 var isArr=isArray(p);
                 if(isArr){
                     p=some.apply(null,p);
                 }
                 if(isPromiseLike(p)){
-                    p.then(callee,function(v){
+                    p.then(resolve,function(v){
                         ret[i]=isArr?slice.call(arguments):v;
                         if(len==++pending){
                             reject.apply(null,ret);
                         }
                     });
-                }else callee(p);
+                }else resolve(p);
             }):reject();
         });
     }
@@ -217,20 +207,16 @@
         }
 
         struct.prototype[prop]=function(p){
-            if(this.state!='pending' && this.state!=state){
-                throw new Error('Illegal call');
-            }
+            if(this.state=='pending'){
 
-            if(p===this){
-                throw new TypeError('invalid_argument');
-            }
+                if(isPromiseLike(p)){
+                    this.chain.call(p,this);
+                }else{
+                    this.state=state;
+                    this.args=slice.call(arguments);
+                    this.fire(prop);
+                }
 
-            if(isPromiseLike(p)){
-                this.chain.call(p,this);
-            }else{
-                this.state=state;
-                this.args=slice.call(arguments);
-                this.fire(prop);
             }
 
             return this;
