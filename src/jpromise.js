@@ -226,7 +226,7 @@
             }
 
             if(isPromiseLike(p)){
-                p.chain(this);
+                this.chain.call(p,this);
             }else{
                 this.state=state;
                 this.args=slice.call(arguments);
