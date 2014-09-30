@@ -58,7 +58,7 @@ var resolveDefer=function(t){
 	});
 }
 console.log('start');
-new JPromise.resolve(1000).then(function(t){
+JPromise.resolve(1000).then(function(t){
 	return resolveDefer(t); //延迟1s
 }).then(function(t){
 	console.log(t+'ms后输出');
