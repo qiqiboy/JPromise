@@ -78,7 +78,11 @@ new JPromise.resolve(1000).then(function(t){
 	console.log('调用完毕');
 });
 
-//方法说明
+//获取受限promise，即只有 .then .catch .progress 方法，不允许外部更改promise状态
+var p=new Promise;
+p.promise(); //= new Promise(resolver).promise(); 等同于 Promise.promise(resolver);
+
+//其它方法说明
 JPromise.all(); //同Promise规范
 JPromise.any(); //同Promise规范
 
