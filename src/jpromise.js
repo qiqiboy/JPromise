@@ -210,11 +210,11 @@
                                 }
                             }
                             fail=function(v){
-                                ret2[i]=isArr?slice.call(arguments):v;
-                                if(len==++pending && !ret1.length){
-                                    reject.apply(null,ret2);
+                                ret2.push(isArr?slice.call(arguments):v);
+                                if(len==++pending){
+                                    ret1.length?resolve.apply(null,ret1):reject.apply(null,ret2);
                                 }
-                            };;
+                            }
                             break;
                         case 'race':
                             done=fail=resolve;
