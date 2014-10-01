@@ -85,5 +85,7 @@ p.promise(); //= new Promise(resolver).promise(); 等同于 Promise.promise(reso
 //其它方法说明
 JPromise.all(); //同Promise规范
 JPromise.any(); //同Promise规范
+JPromise.some(); //同Promise规范
+JPromise.race(); //同Promise规范
 
 ````

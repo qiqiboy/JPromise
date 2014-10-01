@@ -83,13 +83,14 @@
                     if(isFn(fns[i])){
                         try{
                             v=fns[i].apply(null,args);
-                            args[0]=v;
                             i==1 && (prop='resolve');
                         }catch(e){
-                            next.reject(e);
+                            prop='reject';
+                            v=e;
                         }
+                        args[0]=v;
                     }
-
+                    
                     next[prop].apply(next,args);
                 });
             }.bind(this));
@@ -142,53 +143,6 @@
         }
     }
 
-    function when(){
-        var queue=slice.call(arguments),
-            ret=[],len=queue.length,
-            pending=0;
-
-        return struct(function(resolve,reject){
-            queue.length?queue.forEach(function(p,i){
-                var isArr=isArray(p),
-                    callee=function(v){
-                        ret[i]=isArr?slice.call(arguments):v;
-                        if(len==++pending){
-                            resolve.apply(null,ret);
-                        }
-                    }
-                if(isArr){
-                    p=when.apply(null,p);
-                }
-                if(isPromiseLike(p)){
-                    p.then(callee,reject);
-                }else callee(p);
-            }):resolve();
-        });
-    }
-
-    function some(){
-        var queue=slice.call(arguments),
-            ret=[],len=queue.length,
-            pending=0;
-
-        return struct(function(resolve,reject){
-            queue.length?queue.forEach(function(p,i){
-                var isArr=isArray(p);
-                if(isArr){
-                    p=some.apply(null,p);
-                }
-                if(isPromiseLike(p)){
-                    p.then(resolve,function(v){
-                        ret[i]=isArr?slice.call(arguments):v;
-                        if(len==++pending){
-                            reject.apply(null,ret);
-                        }
-                    });
-                }else resolve(p);
-            }):reject();
-        });
-    }
-
     "defer promise".split(" ").forEach(function(prop){
         struct[prop]=function callee(resolver){
             if(this instanceof callee){
@@ -223,19 +177,65 @@
         }
     });
 
-    "when all every".split(" ").forEach(function(prop){
-        struct[prop]=when;
+    "when all every any some race".split(" ").forEach(function(prop){
+        var callee=struct[prop]=function(){
+            var queue=slice.call(arguments),
+                ret1=[],ret2=[],
+                len=queue.length,
+                pending=0;
 
-        struct.prototype[prop]=function(){
-            return when.apply(null,arguments).chain(this);
+            return struct(function(resolve, reject, notify){
+                queue.length?queue.forEach(function(p,i){
+                    var isArr=isArray(p),
+                        done,fail;
+                    if(isArr){
+                        p=callee.apply(null,p);
+                    }
+                    p=struct.resolve(p);
+                    switch(prop){
+                        case 'any':
+                            done=resolve;
+                            fail=function(v){
+                                ret2[i]=isArr?slice.call(arguments):v;
+                                if(len==++pending){
+                                    reject.apply(null,ret2);
+                                }
+                            }
+                            break;
+                        case 'some':
+                            done=function(v){
+                                ret1.push(isArr?slice.call(arguments):v);
+                                if(len==++pending){
+                                    resolve.apply(null,ret1);
+                                }
+                            }
+                            fail=function(v){
+                                ret2[i]=isArr?slice.call(arguments):v;
+                                if(len==++pending && !ret1.length){
+                                    reject.apply(null,ret2);
+                                }
+                            };;
+                            break;
+                        case 'race':
+                            done=fail=resolve;
+                            break;
+                        default:
+                            done=function(v){
+                                ret1[i]=isArr?slice.call(arguments):v;
+                                if(len==++pending){
+                                    resolve.apply(null,ret1);
+                                }
+                            }
+                            fail=reject;
+                    }
+                    p.always(notify);
+                    p.then(done,fail);
+                }):resolve();
+            });
         }
-    });
-
-    "some any race".split(" ").forEach(function(prop){
-        struct[prop]=some;
 
         struct.prototype[prop]=function(){
-            return some.apply(null,arguments).chain(this);
+            return callee.apply(null,arguments).chain(this);
         }
     });
 
