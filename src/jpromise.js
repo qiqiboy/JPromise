@@ -113,6 +113,14 @@
                 p.notify.apply(p,arguments);
             });
         },
+        delay:function(ms){
+            return this.then(function(){
+                var args=arguments;
+                return struct(function(resolve){
+                    setTimeout(function(){resolve.apply(null,args)},ms);
+                });
+            });
+        },
         'catch':function(fn){
             return this.then(null,fn);
         },
