@@ -88,7 +88,7 @@
                             prop='reject';
                             v=e;
                         }
-                        args[0]=v;
+                        args=[v];
                     }
                     
                     next[prop].apply(next,args);
