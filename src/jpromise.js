@@ -114,7 +114,7 @@
             });
         },
         delay:function(ms){
-            return this.then(function(){
+            return this.always(function(){
                 var args=arguments;
                 return struct(function(resolve){
                     setTimeout(function(){resolve.apply(null,args)},ms);
