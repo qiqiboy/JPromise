@@ -197,7 +197,9 @@
                     var isArr=isArray(p),
                         done,fail;
                     if(isArr){
-                        p=callee.apply(null,p);
+                        p=callee.apply(null,p).progress(notify);
+                    }else{
+                        p.always(notify);
                     }
                     p=struct.resolve(p);
                     switch(prop){
@@ -236,7 +238,6 @@
                             }
                             fail=reject;
                     }
-                    p.always(notify);
                     p.then(done,fail);
                 }):resolve();
             });
