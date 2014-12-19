@@ -136,7 +136,7 @@
         progress:function(fn){
             return this.then(null,null,fn);
         },
-        defer:function(){
+        deferred:function(){
             return this;
         },
         promise:function(){
