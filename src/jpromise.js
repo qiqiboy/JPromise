@@ -81,13 +81,8 @@
                         v;
 
                     if(isFn(fns[i])){
-                        try{
-                            v=fns[i].apply(null,args);
-                            i==1 && (prop='resolve');
-                        }catch(e){
-                            prop='reject';
-                            v=e;
-                        }
+                        v=fns[i].apply(null,args);
+                        i==1 && (prop='resolve');
                         args=[v];
                     }
                     
