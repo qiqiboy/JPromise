@@ -155,7 +155,8 @@
 
         struct[prop]=function(){
             var p=new this;
-            return p[prop].apply(p,arguments);
+            p[prop].apply(p,arguments);
+            return p;
         }
 
         struct.prototype[prop]=function(p){
