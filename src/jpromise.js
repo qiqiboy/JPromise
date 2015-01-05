@@ -109,12 +109,11 @@
             });
         },
         delay:function(ms){
-            return this.always(function(){
-                var args=arguments;
-                return struct(function(resolve){
-                    setTimeout(function(){resolve.apply(null,args)},ms);
-                });
-            });
+            var pms=new struct;
+            setTimeout(function(){
+                self.chain(pms);
+            }.bind(this),ms);
+            return pms;
         },
         'catch':function(fn){
             return this.then(null,fn);
