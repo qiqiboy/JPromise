@@ -111,7 +111,7 @@
         delay:function(ms){
             var pms=new struct;
             setTimeout(function(){
-                self.chain(pms);
+                this.chain(pms);
             }.bind(this),ms);
             return pms;
         },
