@@ -104,9 +104,11 @@
         },
         delay:function(ms){
             var pms=new struct;
-            setTimeout(function(){
-                this.chain(pms);
-            }.bind(this),ms);
+            this.always(function(){
+                setTimeout(function(){
+                    this.chain(pms);
+                }.bind(this),ms);
+            }.bind(this));
             return pms;
         },
         'catch':function(fn){
