@@ -100,13 +100,7 @@
             return next;
         },
         chain:function(p){
-            return this.then(function(){
-                p.resolve.apply(p,arguments);
-            },function(){
-                p.reject.apply(p,arguments);
-            },function(){
-                p.notify.apply(p,arguments);
-            });
+            return this.then(p.resolve.bind(p),p.reject.bind(p),p.notify.bind(p));
         },
         delay:function(ms){
             var pms=new struct;
@@ -174,8 +168,6 @@
                 }
 
             }
-
-            return this;
         }
     });
 
