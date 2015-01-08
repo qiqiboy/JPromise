@@ -194,9 +194,11 @@ JPromise.resolve(1000).then(function(t){
 
 }
     
-JPromise().when(resolveDelay(1000),resolveDelay(4000),resolveDelay(3000)).then(function(){console.log('4s done!'); lz1();});//= JPromise.when(resolveDelay(1000),resolveDelay(2000),resolveDelay(3000)).then(function(){console.log('3s done!')});
+JPromise().when(resolveDelay(1000),resolveDelay(4000),resolveDelay(3000)).then(function(){console.log(arguments,'4s done!'); lz1();});//= JPromise.when(resolveDelay(1000),resolveDelay(2000),resolveDelay(3000)).then(function(){console.log('3s done!')});
 
-JPromise().any(resolveDelay(1000),resolveDelay(2000),resolveDelay(3000)).then(function(){console.log('1s done!'); lz();});//= JPromise.any(resolveDelay(1000),resolveDelay(2000),resolveDelay(3000)).then(function(){console.log('1s done!')});
+JPromise().any(resolveDelay(1000),resolveDelay(2000),resolveDelay(3000)).then(function(){console.log(arguments,'1s done!'); lz();});//= JPromise.any(resolveDelay(1000),resolveDelay(2000),resolveDelay(3000)).then(function(){console.log('1s done!')});
+
+JPromise().queue(function(){return resolveDefer(100)},[function(){return resolveDefer(100)},function(){return resolveDefer(200)}],function(){return resolveDefer(500)}).then(function(){console.log(arguments,'queue done!');});
 </script>
 </body>
 </html>

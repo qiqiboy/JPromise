@@ -88,4 +88,6 @@ JPromise.any(); //同Promise规范
 JPromise.some(); //同Promise规范
 JPromise.race(); //同Promise规范
 
+JPromise.queue(); //参数应该为一组函数，函数返回一个promise，将按照传参顺序依次执行每个promise，全部执行完毕返回结果成功resolve
+
 ````

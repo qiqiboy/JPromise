@@ -174,6 +174,28 @@
         }
     });
 
+    struct.queue=function(){
+        var queue=slice.call(arguments),
+            chain=struct.resolve();
+
+        return struct(function(resolve,reject,notify){
+            queue.forEach(function(p){
+                chain=chain.then(isFn(p)?p:function(){
+                    if(isArray(p)){
+                        p=struct.queue.apply(null,p).progress(notify);
+                    }
+                    return p;
+                });
+                !isArray(p) && chain.always(notify);
+            });
+            chain.then(resolve);
+        });
+    }
+    struct.prototype.queue=function(){
+        struct.queue.apply(null,arguments).chain(this);
+        return this;
+    }
+
     "when all every any some race".split(" ").forEach(function(prop){
         var callee=struct[prop]=function(){
             var queue=slice.call(arguments),
@@ -233,7 +255,8 @@
         }
 
         struct.prototype[prop]=function(){
-            return callee.apply(null,arguments).chain(this);
+            callee.apply(null,arguments).chain(this);
+            return this;
         }
     });
 
