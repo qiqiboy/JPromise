@@ -100,8 +100,10 @@
             return next;
         },
         chain:function(p){
-            this.then(p.resolve.bind(p),p.reject.bind(p),p.notify.bind(p));
-            return p;
+            if(!isPromiseLike(p)){
+                throw new TypeError(p+' is not an instance of Promise');
+            }
+            return this.then(p.resolve.bind(p),p.reject.bind(p),p.notify.bind(p));
         },
         delay:function(ms){
             var p=new struct;
@@ -193,7 +195,8 @@
         });
     }
     struct.prototype.queue=function(){
-        return struct.queue.apply(null,arguments).chain(this);
+        struct.queue.apply(null,arguments).chain(this);
+        return this;
     }
 
     "when all every any some race".split(" ").forEach(function(prop){
@@ -255,7 +258,8 @@
         }
 
         struct.prototype[prop]=function(){
-            return callee.apply(null,arguments).chain(this);
+            callee.apply(null,arguments).chain(this);
+            return this;
         }
     });
 
