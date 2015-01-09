@@ -100,16 +100,17 @@
             return next;
         },
         chain:function(p){
-            return this.then(p.resolve.bind(p),p.reject.bind(p),p.notify.bind(p));
+            this.then(p.resolve.bind(p),p.reject.bind(p),p.notify.bind(p));
+            return p;
         },
         delay:function(ms){
-            var pms=new struct;
+            var p=new struct;
             this.always(function(){
                 setTimeout(function(){
-                    this.chain(pms);
+                    this.chain(p);
                 }.bind(this),ms);
             }.bind(this));
-            return pms;
+            return p;
         },
         'catch':function(fn){
             return this.then(null,fn);
@@ -192,8 +193,7 @@
         });
     }
     struct.prototype.queue=function(){
-        struct.queue.apply(null,arguments).chain(this);
-        return this;
+        return struct.queue.apply(null,arguments).chain(this);
     }
 
     "when all every any some race".split(" ").forEach(function(prop){
@@ -255,8 +255,7 @@
         }
 
         struct.prototype[prop]=function(){
-            callee.apply(null,arguments).chain(this);
-            return this;
+            return callee.apply(null,arguments).chain(this);
         }
     });
 
