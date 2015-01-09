@@ -100,7 +100,7 @@
             return next;
         },
         chain:function(p){
-            if(!isPromiseLike(p)){
+            if(!(p instanceof struct)){
                 throw new TypeError(p+' is not an instance of Promise');
             }
             return this.then(p.resolve.bind(p),p.reject.bind(p),p.notify.bind(p));
