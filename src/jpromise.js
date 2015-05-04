@@ -81,8 +81,13 @@
                         v;
 
                     if(isFn(fns[i])){
-                        v=fns[i].apply(null,args);
-                        i==1 && (prop='resolve');
+                        try{
+                            v=fns[i].apply(null,args);
+                            prop=='notify' || (prop='resolve');
+                        }catch(e){
+                            v=e;
+                            prop='reject';
+                        }
                         args=[v];
                     }
                     
@@ -100,10 +105,19 @@
             return next;
         },
         chain:function(p){
-            if(!(p instanceof struct)){
-                throw new TypeError(p+' is not an instance of Promise');
+            try{
+                if(!(p instanceof struct)){
+                    throw new TypeError(p+' is not an instance of Promise');
+                }
+
+                if(p==this){
+                    throw new TypeError('TypeError');
+                }
+
+                return this.then(p.resolve.bind(p),p.reject.bind(p),p.notify.bind(p));
+            }catch(e){
+                return struct.reject(e);
             }
-            return this.then(p.resolve.bind(p),p.reject.bind(p),p.notify.bind(p));
         },
         delay:function(ms){
             var p=new struct;
@@ -164,7 +178,6 @@
 
         struct.prototype[prop]=function(p){
             if(this.state=='pending'){
-
                 if(isPromiseLike(p)){
                     this.chain.call(p,this);
                 }else{
@@ -172,7 +185,6 @@
                     this.args=slice.call(arguments);
                     this.fire(prop);
                 }
-
             }
         }
     });
