@@ -6,27 +6,6 @@
 (function(ROOT, struct, undefined){
     "use strict";
 
-    if(typeof Function.prototype.bind!='function'){
-        Function.prototype.bind=function(obj){
-            var self=this;
-            return function(){
-                return self.apply(obj,arguments);
-            }
-        }
-    }
-
-    if(typeof Array.prototype.forEach!='function'){
-         Array.prototype.forEach=function(iterate){
-            var i=0,len=this.length,item;
-            for(;i<len;i++){
-                item=this[i];
-                if(typeof item!='undefined'){
-                    iterate(item,i,this);
-                }
-            }
-         }
-    }
-
     var Refer={
         resolved:'resolve',
         rejected:'reject',
@@ -34,7 +13,27 @@
     },
     slice=[].slice,
     toString={}.toString;
+
+    function _forEach(iterate){
+        var i=0,len=this.length,item;
+        for(;i<len;i++){
+            item=this[i];
+            if(typeof item!='undefined'){
+                iterate(item,i,this);
+            }
+        }
+    }
+
+    function each(arr,iterate){
+        return 'forEach' in arr ? arr.forEach(iterate) : _forEach.call(arr,iterate)
+    }
     
+    function bind(obj,fn){
+        return function(){
+            return fn.apply(obj,arguments);
+        }
+    }
+
     function isFn(fn){
         return typeof fn=='function';
     }
@@ -50,6 +49,12 @@
     struct.prototype={
         constructor:struct,
         state:'pending',
+        init:function(resolver){
+            this.handles={};
+            typeof resolver=='function' &&
+                resolver(bind(this,this.resolve),bind(this,this.reject),bind(this,this.notify));
+            return this;
+        },
         on:function(ev,fn){
             if(!this.handles[ev]){
                 this.handles[ev]=[];
@@ -61,7 +66,7 @@
             var args=this.args||[],
                 queue=this.handles[ev]||[];
             if(ev=='notify'){
-                queue.forEach(function(fn){
+                each(queue,function(fn){
                     fn.apply(null,args);
                 });
             }else{
@@ -75,7 +80,7 @@
             var next=new struct,
                 fns=arguments;
             
-            "resolve reject notify".split(" ").forEach(function(prop,i){
+            each("resolve reject notify".split(" "),bind(this,function(prop,i){
                 this.on(prop,function(){
                     var args=slice.call(arguments),
                         v;
@@ -93,7 +98,7 @@
                     
                     next[prop].apply(next,args);
                 });
-            }.bind(this));
+            }));
 
             switch(this.state){
                 case 'resolved':
@@ -114,18 +119,19 @@
                     throw new TypeError('TypeError');
                 }
 
-                return this.then(p.resolve.bind(p),p.reject.bind(p),p.notify.bind(p));
+                return this.then(bind(p,p.resolve),bind(p,p.reject),bind(p,p.notify));
             }catch(e){
                 return struct.reject(e);
             }
         },
         delay:function(ms){
-            var p=new struct;
+            var self=this,
+                p=new struct;
             this.always(function(){
                 setTimeout(function(){
-                    this.chain(p);
-                }.bind(this),ms);
-            }.bind(this));
+                    self.chain(p);
+                },ms);
+            });
             return p;
         },
         'catch':function(fn){
@@ -149,7 +155,7 @@
         promise:function(){
             var self=this,
                 p={};
-            "then catch progress".split(" ").forEach(function(prop){
+            each("then catch progress".split(" "),function(prop){
                 p[prop]=function(){
                     return self[prop].apply(self,arguments).promise();
                 }
@@ -158,7 +164,7 @@
         }
     }
 
-    "defer promise".split(" ").forEach(function(prop){
+    each("defer promise".split(" "),function(prop){
         struct[prop]=function callee(resolver){
             if(this instanceof callee){
                 throw new TypeError(prop+' is not a constructor');
@@ -167,7 +173,7 @@
         }
     });
 
-    "resolved rejected pending".split(" ").forEach(function(state){
+    each("resolved rejected pending".split(" "),function(state){
         var prop=Refer[state];
 
         struct[prop]=function(){
@@ -194,7 +200,7 @@
             chain=struct.resolve();
 
         return struct(function(resolve,reject,notify){
-            queue.forEach(function(p){
+            each(queue,function(p){
                 chain=chain.then(isFn(p)?p:function(){
                     if(isArray(p)){
                         p=struct.queue.apply(null,p).progress(notify);
@@ -211,7 +217,7 @@
         return this;
     }
 
-    "when all every any some race".split(" ").forEach(function(prop){
+    each("when all every any some race".split(" "),function(prop){
         var callee=struct[prop]=function(){
             var queue=slice.call(arguments),
                 ret1=[],ret2=[],
@@ -219,7 +225,7 @@
                 pending=0;
 
             return struct(function(resolve, reject, notify){
-                queue.length?queue.forEach(function(p,i){
+                queue.length?each(queue,function(p,i){
                     var isArr=isArray(p),
                         done,fail;
                     if(isArr){
@@ -281,9 +287,5 @@
     if(!(this instanceof arguments.callee)){
         return new arguments.callee(resolver);
     }
-    
-    this.handles={};
-
-    typeof resolver=='function' &&
-        resolver(this.resolve.bind(this),this.reject.bind(this),this.notify.bind(this));
+    this.init(resolver);
 });
