@@ -283,9 +283,9 @@
 
     ROOT.JPromise=struct;
     
-})(window, function(resolver){
-    if(!(this instanceof arguments.callee)){
-        return new arguments.callee(resolver);
+})(window, function self(resolver){
+    if(!(this instanceof self)){
+        return new self(resolver);
     }
     this.init(resolver);
 });
